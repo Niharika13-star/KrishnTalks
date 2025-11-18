@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KrishnTalks: Modern guidance. Eternal wisdom.</title>
+    <link rel="icon" type="image/png" href="krishntalkss.png">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Inter:wght@400;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #EEF2FF;
+            background-image: url('krishnimgbg.png');
+            background-size: 200% 200%;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            animation: subtle-pan 30s linear infinite alternate;
+        }
+
+        .w-full.max-w-4xl.bg-white.shadow-2xl.rounded-2xl {
+            background-color: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        
+        .merriweather {
+            font-family: 'Merriweather', serif;
+        }
+        .chat-container {
+            height: calc(100vh - 200px);
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+        .chat-user { background-color: #E0E7FF; }
+        .chat-ai { background-color: #F0F4F8; }
+        .voice-btn {
+            background-color: #6366F1;
+            transition: all 0.2s;
+        }
+        .voice-btn:hover { background-color: #4F46E5; }
+        .voice-btn.listening {
+            animation: pulse 1.5s infinite;
+            background-color: #EC4899;
+        }
+        .star-rating input { display: none; }
+        .star-rating label {
+            font-size: 2rem;
+            color: #ccc;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .star-rating label:hover,
+        .star-rating label:hover ~ label,
+        .star-rating input:checked ~ label {
+            color: #FFC107;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(99, 102, 241, 0); }
+        }
+
+        @keyframes subtle-pan {
+            0% {
+                background-position: 0% 0%;
+            }
+            100% {
+                background-position: 100% 100%;
+            }
+        }
+
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <div id="global-loader" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white p-4 rounded-lg shadow-xl flex items-center space-x-3">
+            <svg class="animate-spin h-5 w-5 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span id="loader-message" class="text-gray-700">Initializing App...</span>
+        </div>
+    </div>
+    
+    <header class="bg-indigo-700 text-white shadow-lg p-4 flex items-center justify-between sticky top-0 z-10">
+      <img src="Krishntalkss.png" alt="KrishnTalks Logo" class="h-8 w-8 rounded-full">
+        <h1 class="text-2xl font-bold merriweather">KrishnTalks🕉️</h1>
+        
+        <button onclick="toggleSidebar()" class="p-2 rounded-full hover:bg-indigo-600 transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
+    </header>
+
+    <nav id="sidebar" class="fixed top-0 right-0 h-full w-64 bg-indigo-600 text-white shadow-2xl transform translate-x-full transition-transform duration-300 z-40 p-4">
+        <h2 class="text-xl font-bold mb-6 border-b border-indigo-400 pb-2 merriweather">Menu</h2>
+        <ul class="space-y-3">
+            <li><a href="#" onclick="showPage('home'); toggleSidebar()" class="block p-3 rounded-lg hover:bg-indigo-700 transition flex items-center space-x-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0h6m-6 0h-6"></path></svg><span>Home 🏠</span></a></li>
+            <li><a href="#" onclick="showPage('chat'); toggleSidebar()" class="block p-3 rounded-lg hover:bg-indigo-700 transition flex items-center space-x-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg><span>AI Guidance ✨</span></a></li>
+            <li><a href="#" onclick="showPage('katha'); toggleSidebar()" class="block p-3 rounded-lg hover:bg-indigo-700 transition flex items-center space-x-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5s3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18s-3.332.477-4.5 1.253"></path></svg><span>Krishna Katha 📖</span></a></li>
+            <li><a href="#" onclick="showPage('diary'); toggleSidebar()" class="block p-3 rounded-lg hover:bg-indigo-700 transition flex items-center space-x-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m-6-8h6M5 20h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v11a2 2 0 002 2z"></path></svg><span>Personal Diary 📝</span></a></li>
+            <li><a href="#" onclick="showPage('practices'); toggleSidebar()" class="block p-3 rounded-lg hover:bg-indigo-700 transition flex items-center space-x-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2m-9 0V3h4v2m-4 0h4"></path></svg><span>Spiritual Practices ✅</span></a></li>
+            <li><a href="#" onclick="showPage('userdata'); toggleSidebar()" class="block p-3 rounded-lg hover:bg-indigo-700 transition flex items-center space-x-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg><span>User Data 👤</span></a></li>
+            <li><a href="#" onclick="showPage('about'); toggleSidebar()" class="block p-3 rounded-lg hover:bg-indigo-700 transition flex items-center space-x-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><span>About & Feedback 💡</span></a></li>
+            <li><a href="#" onclick="showPage('consult'); toggleSidebar()" class="block p-3 rounded-lg hover:bg-indigo-700 transition flex items-center space-x-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c1.657 0 3 1.343 3 3v2a3 3 0 01-6 0v-2c0-1.657 1.343-3 3-3zM9 16h6M3 12a9 9 0 1118 0 9 9 0 01-18 0z"></path></svg><span>Self-Consult 🧘</span></a></li>
+        </ul>
+        <div class="mt-8 text-sm text-center text-indigo-900">
+            <p id="auth-status">Status: Connecting...</p>
+        </div>
+    </nav>
+    <div id="overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden"></div>
+
+
+    <main id="app-content" class="flex-grow flex justify-center p-0 md:p-0"> 
+        </main>
+    
+    <div id="modal-container" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
+        <div class="bg-white p-6 rounded-xl shadow-2xl max-w-sm w-full">
+            <h3 id="modal-title" class="text-xl font-bold mb-3 text-indigo-700">Message</h3>
+            <p id="modal-message" class="text-gray-700 mb-6"></p>
+            <button onclick="hideModal()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg w-full hover:bg-indigo-700 transition">Close</button>
+        </div>
+    </div>
+
+
+    <script type="module">
+        // --- Firebase Imports (Keeping structure for future implementation) ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, query, addDoc, getDocs, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- Global State Variables ---
+        window.db = null;
+        window.auth = null;
+        window.userId = null;
+        window.appId = null;
+        window.isAuthReady = false;
+        window.chatHistory = [];
+        window.ttsAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+        window.isListening = false;
+        window.speechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        const AI_VOICE_NAME = "Kore"; 
+        const API_KEY = "AIzaSyCnpgOirD7zo5kxgnawRK69KlcQSYC8yv8"; 
+        const CHAT_MODEL = "gemini-2.5-flash-preview-09-2025";
+        const TTS_MODEL = "gemini-2.5-flash-preview-tts";
+        
+        // --- NEW: Global state for Practices and User Data (Using LocalStorage for persistence in this file) ---
+        
+        const DEFAULT_PRACTICES = [
+            { id: 'm', name: 'Meditation (15 mins)', completed: false },
+            { id: 'r', name: 'Read Gita (1 Chapter)', completed: false },
+            { id: 'k', name: 'Mindful Action (Karma Yoga)', completed: false },
+        ];
+
+        const getCurrentDate = () => new Date().toLocaleDateString('en-US');
+
+        // Load or initialize practices with daily reset check
+        const loadOrResetPractices = () => {
+            let practices = JSON.parse(localStorage.getItem('dailyPractices') || '[]');
+            const lastDate = localStorage.getItem('lastPracticeDate');
+            const today = getCurrentDate();
+            
+            if (practices.length === 0) {
+                practices = DEFAULT_PRACTICES;
+            }
+            
+            // Check if the date has changed (Simulate daily reset)
+            if (lastDate !== today) {
+                practices = practices.map(p => ({ ...p, completed: false }));
+                localStorage.setItem('lastPracticeDate', today);
+            }
+            
+            window.dailyPractices = practices;
+            localStorage.setItem('dailyPractices', JSON.stringify(window.dailyPractices));
+        }
+
+        loadOrResetPractices();
+        window.currentUserData = JSON.parse(localStorage.getItem('currentUserData') || '{}');
+        
+        // --- Utility Functions (UI helpers are the same) ---
+        function showLoader(message = "Loading...") {
+            document.getElementById('loader-message').textContent = message;
+            document.getElementById('global-loader').classList.remove('hidden');
+        }
+
+        function hideLoader() {
+            document.getElementById('global-loader').classList.add('hidden');
+        }
+
+        function showModal(title, message) {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-message').textContent = message;
+            document.getElementById('modal-container').classList.remove('hidden');
+        }
+
+        window.hideModal = function() {
+            document.getElementById('modal-container').classList.add('hidden');
+        }
+
+        // --- Voice/Audio Functions (TTS, Voice Input - Kept the same) ---
+        function base64ToArrayBuffer(base64) { 
+            const binaryString = atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        function pcmToWav(pcmData, sampleRate) { 
+            const buffer = new ArrayBuffer(44 + pcmData.length * 2);
+            const view = new DataView(buffer);
+            
+            function writeString(view, offset, string) {
+                for (let i = 0; i < string.length; i++) {
+                    view.setUint8(offset + i, string.charCodeAt(i));
+                }
+            }
+            
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + pcmData.length * 2, true);
+            writeString(view, 8, 'WAVE');
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true);
+            writeString(view, 20, '1', 2);
+            writeString(view, 22, '1', 2);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * 2, true);
+            writeString(view, 32, '2', 2);
+            writeString(view, 34, '16', 2);
+            writeString(view, 36, 'data');
+            view.setUint32(40, pcmData.length * 2, true);
+            
+            let offset = 44;
+            for (let i = 0; i < pcmData.length; i++) {
+                view.setInt16(offset, pcmData[i], true);
+                offset += 2;
+            }
+            
+            return new Blob([buffer], { type: 'audio/wav' });
+        }
+
+        window.speakText = async function(text) { 
+            const ttsButton = document.getElementById('tts-button');
+            if (ttsButton) ttsButton.disabled = true;
+
+            try {
+                // Simplified mock for TTS in a single file environment
+                const audio = new SpeechSynthesisUtterance(text);
+                speechSynthesis.speak(audio);
+                audio.onend = () => { 
+                    if (ttsButton) ttsButton.disabled = false;
+                };
+            } catch (e) {
+                console.error("TTS Error:", e);
+                showModal("TTS Failed", `Could not play speech. Check browser support: ${e.message}`);
+            }
+        }
+
+        window.startVoiceInput = function() { 
+            if (!window.speechRecognition) {
+                showModal("Voice Input Not Supported", "Your browser does not support the Web Speech API for voice recognition.");
+                return;
+            }
+
+            const micButton = document.getElementById('mic-button');
+
+            if (window.isListening) {
+                window.recognition.stop();
+                return;
+            }
+
+            window.recognition = new window.speechRecognition();
+            window.recognition.lang = 'en-US'; 
+            window.recognition.interimResults = false;
+            window.recognition.maxAlternatives = 1;
+
+            window.recognition.onstart = () => {
+                window.isListening = true;
+                micButton.classList.add('listening');
+                micButton.innerHTML = `<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3.53-2.61 6.44-6 6.93V21h-2v-3.07c-3.39-.49-6-3.4-6-6.93H3c0 4.19 3.4 7.6 7.5 7.93v3.07h3v-3.07c4.1-.33 7.5-3.74 7.5-7.93h-2z"/></svg>`;
+            };
+
+            window.recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('user-input').value = transcript;
+                window.sendMessage(); 
+            };
+
+            window.recognition.onerror = (event) => {
+                console.error('Speech Recognition Error:', event.error);
+                showModal("Voice Input Error", `Error: ${event.error}. Please try again.`);
+            };
+
+            window.recognition.onend = () => {
+                window.isListening = false;
+                micButton.classList.remove('listening');
+                micButton.innerHTML = `<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3.53-2.61 6.44-6 6.93V21h-2v-3.07c-3.39-.49-6-3.4-6-6.93H3c0 4.19 3.4 7.6 7.5 7.93v3.07h3v-3.07c4.1-.33 7.5-3.74 7.5-7.93h-2z"/></svg>`;
+            };
+
+            window.recognition.start();
+        }
+
+        // --- Firebase/Auth (Kept structure, simplified for single-file) ---
+        function getCollectionPath(collectionName, isPublic = false) { return `mock/path`; }
+        async function initFirebase() { 
+             showLoader("Initializing App...");
+            
+            // Mock initialization
+            window.userId = 'mock-user-' + Math.random().toString(36).substring(2, 10);
+            window.appId = 'mock-app-id';
+            document.getElementById('auth-status').textContent = `User: ${window.userId.substring(0, 8)}... (Mock)`;
+            window.isAuthReady = true;
+
+            setTimeout(() => {
+                hideLoader();
+                showPage('home');
+                setupChatListener();
+            }, 500);
+        }
+
+        // --- Firestore Data Handlers and Chat Logic (Simplified and mocked) ---
+        
+        async function saveMessage(role, text) {
+             window.chatHistory.push({ role: role === 'user' ? 'user' : 'ai', text: text, timestamp: Date.now() });
+             localStorage.setItem('chatHistory', JSON.stringify(window.chatHistory));
+             renderChatMessages(window.chatHistory);
+        }
+
+        function setupChatListener() {
+            // Load history from mock storage
+            window.chatHistory = JSON.parse(localStorage.getItem('chatHistory') || '[]');
+            renderChatMessages(window.chatHistory);
+        }
+        
+        window.sendMessage = async function() {
+            const inputElement = document.getElementById('user-input');
+            const userText = inputElement.value.trim();
+            const sendButton = document.getElementById('send-button');
+            const chatOutput = document.getElementById('chat-output');
+            
+            if (!userText) return;
+
+            inputElement.value = '';
+            inputElement.disabled = true;
+            sendButton.disabled = true;
+            document.getElementById('mic-button').disabled = true;
+
+            await saveMessage('user', userText);
+            chatOutput.scrollTop = chatOutput.scrollHeight;
+
+            try {
+                // Mock API call simulation
+                showLoader("Krishna is contemplating your query...");
+                await new Promise(resolve => setTimeout(resolve, 2000)); 
+                
+                const aiText = `My dear soul, I see the challenge you face with **${userText.substring(0, 20)}...** The wisdom of the Gita instructs: act according to your Dharma (duty) without attachment to the results (Chapter 2, Verse 47). Find peace in the effort, not the outcome. What specific duty is causing you distress?`;
+
+                await saveMessage('ai', aiText);
+                window.speakText(aiText);
+
+            } catch (e) {
+                console.error("AI Chat Error:", e);
+                showModal("Guidance Error", `A cosmic barrier prevented the response: ${e.message}`);
+            } finally {
+                hideLoader();
+                inputElement.disabled = false;
+                sendButton.disabled = false;
+                document.getElementById('mic-button').disabled = false;
+                inputElement.focus();
+            }
+        }
+        
+        function renderChatMessages(history) {
+            const chatOutput = document.getElementById('chat-output');
+            if (!chatOutput) return;
+
+            const isScrolledToBottom = chatOutput.scrollHeight - chatOutput.clientHeight <= chatOutput.scrollTop + 10;
+            chatOutput.innerHTML = '';
+            
+            if (history.length === 0) {
+                 chatOutput.innerHTML = `
+                     <div class="p-3 chat-ai text-gray-700 rounded-lg shadow-sm max-w-xs mx-auto text-center merriweather mt-10">
+                         "Arjuna, welcome. Ask me any question concerning the path of life and duty."
+                         <button onclick="window.speakText('Arjuna, welcome. Ask me any question concerning the path of life and duty.')" class="ml-2 text-indigo-700 hover:text-indigo-900 focus:outline-none">
+                             <svg class="w-4 h-4 inline" fill="currentColor" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.81 5 3.53 5 6.71s-2.11 5.9-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+                         </button>
+                     </div>`;
+            }
+
+            history.forEach(msg => {
+                const isUser = msg.role === 'user';
+                const wrapper = document.createElement('div');
+                wrapper.className = `flex mb-4 ${isUser ? 'justify-end' : 'justify-start'}`;
+
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `p-3 max-w-3/4 rounded-xl shadow-md merriweather text-gray-800 ${isUser ? 'chat-user rounded-br-none' : 'chat-ai rounded-tl-none'}`;
+                
+                const textNode = document.createElement('p');
+                textNode.textContent = msg.text;
+                messageDiv.appendChild(textNode);
+                
+                if (!isUser) {
+                    const ttsBtn = document.createElement('button');
+                    ttsBtn.className = 'ml-2 text-indigo-700 hover:text-indigo-900 focus:outline-none';
+                    ttsBtn.innerHTML = `<svg class="w-4 h-4 inline" fill="currentColor" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.81 5 3.53 5 6.71s-2.11 5.9-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>`;
+                    ttsBtn.onclick = () => window.speakText(msg.text);
+                    messageDiv.appendChild(ttsBtn);
+                }
+
+                wrapper.appendChild(messageDiv);
+                chatOutput.appendChild(wrapper);
+            });
+
+            if (isScrolledToBottom) {
+                chatOutput.scrollTop = chatOutput.scrollHeight;
+            }
+        }
+        
+        function renderTemporaryMessage(role, text, id) {
+             // Mock temporary message function (not strictly needed with immediate save/render)
+        }
+
+        // --- SPA Navigation and Templating ---
+
+        window.toggleSidebar = function() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+            if (sidebar.classList.contains('translate-x-full')) {
+                sidebar.classList.remove('translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        const GITA_CHAPTERS = Array.from({length: 18}, (_, i) => ({
+            number: i + 1,
+            title: `Chapter ${i + 1}: ${['Arjuna Vishada Yoga', 'Sankhya Yoga', 'Karma Yoga', 'Jnana Karma Sanyasa Yoga', 'Karma Sanyasa Yoga', 'Dhyana Yoga', 'Jnana Vijnana Yoga', 'Akshara Brahma Yoga', 'Raja Vidya Raja Guhya Yoga', 'Vibhuti Yoga', 'Vishwaroopa Darshana Yoga', 'Bhakti Yoga', 'Kshetra Kshetrajna Vibhaga Yoga', 'Gunatraya Vibhaga Yoga', 'Purushottama Yoga', 'Daivasura Sampad Vibhaga Yoga', 'Shraddhatraya Vibhaga Yoga', 'Moksha Sanyasa Yoga'][i] || 'The Divine Manifestations'}`,
+        }));
+
+        window.loadGitaChapter = (chapterNumber) => { 
+            const mainContent = document.getElementById('app-content');
+            mainContent.innerHTML = `
+                <div class="w-full max-w-4xl bg-white shadow-2xl rounded-2xl p-6 md:p-8 flex flex-col h-full overflow-y-auto">
+                    <h2 class="text-3xl font-bold mb-4 text-indigo-800 merriweather">${GITA_CHAPTERS[chapterNumber - 1].title}</h2>
+                    <p class="mb-4 text-gray-600">Select your preferred explanation language:</p>
+                    <div class="flex items-center space-x-4 mb-6">
+                        <select id="explanation-language" class="p-2 border border-gray-300 rounded-md w-1/3">
+                            <option value="en">English</option>
+                            <option value="hi">Hindi</option>
+                            <option value="gu">Gujarati</option>
+                            <option value="ta">Tamil</option>
+                        </select>
+                        <button onclick="getChapterExplanation(${chapterNumber})" class="bg-indigo-500 text-white p-2 rounded-lg hover:bg-indigo-600 transition">Get Explanation</button>
+                    </div>
+                    <div id="gita-content-output" class="space-y-6 text-gray-700">
+                        <div class="bg-gray-100 p-4 rounded-lg">
+                            <h4 class="font-semibold text-xl text-gray-800">Sanskrit Sloka (Chapter ${chapterNumber})</h4>
+                            <p class="font-mono mt-2">कर्मण्येवाधिकारस्ते मा फलेषु कदाचन। मा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वकर्मणि॥ (Sloka 2.47)</p>
+                        </div>
+                        <div class="bg-gray-100 p-4 rounded-lg">
+                            <h4 class="font-semibold text-xl text-gray-800">English Translation</h4>
+                            <p class="mt-2">You have a right to perform your prescribed duty, but you are not entitled to the fruits of action. Never consider yourself the cause of the results of your activities, and never be attached to not performing your duty.</p>
+                        </div>
+                        <div id="dynamic-explanation" class="bg-indigo-50 p-4 rounded-lg border-l-4 border-indigo-500">
+                            <h4 class="font-semibold text-xl text-indigo-700">Explanation in English (Default)</h4>
+                            <p class="mt-2">This sloka embodies the essence of Karma Yoga. It teaches that the duty, the action itself, should be the focus, not the reward. By detaching from the results, one finds true peace and clarity in performing their Dharma.</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        window.getChapterExplanation = function(chapterNumber) { 
+            const langSelect = document.getElementById('explanation-language');
+            const langCode = langSelect.value;
+            const langName = langSelect.options[langSelect.selectedIndex].text;
+            const output = document.getElementById('dynamic-explanation');
+            
+            let simulatedExplanation = '';
+
+            // --- Updated Simulation for Multi-Language Output ---
+            switch(langCode) {
+                case 'hi':
+                    simulatedExplanation = `
+                        <h4 class="font-semibold text-xl text-indigo-700">व्याख्या हिंदी में (AI सिमुलेटेड)</h4>
+                        <p class="mt-2">यह श्लोक कर्म योग का सार है। यह सिखाता है कि आपको **फल की चिंता किए बिना** अपना कर्तव्य निभाना चाहिए। परिणामों से अनासक्त होकर ही आप अपने धर्म के पालन में सच्ची शांति और स्पष्टता पा सकते हैं। कर्म ही आपका अधिकार है, फल नहीं।</p>
+                    `;
+                    break;
+                case 'gu':
+                    simulatedExplanation = `
+                        <h4 class="font-semibold text-xl text-indigo-700">ગુજરાતીમાં સમજૂતી (AI સિમુલેટેડ)</h4>
+                        <p class="mt-2">આ શ્લોક કર્મયોગનો સાર રજૂ કરે છે. તે શીખવે છે કે તમારે **ફળની ચિંતા કર્યા વિના** તમારી ફરજ બજાવવી જોઈએ. પરિણામોથી અનાસક્ત રહીને જ તમે તમારા ધર્મનું પાલન કરવામાં સાચી શાંતિ અને સ્પષ્ટતા મેળવી શકો છો.</p>
+                    `;
+                    break;
+                case 'ta':
+                    simulatedExplanation = `
+                        <h4 class="font-semibold text-xl text-indigo-700">தமிழில் விளக்கம் (AI சிமுலேட்டட்)</h4>
+                        <p class="mt-2">இந்த ஸ்லோகம் கர்ம யோகத்தின் சாரத்தை உள்ளடக்கியது. **பலனைப் பற்றி கவலைப்படாமல்** உங்கள் கடமையைச் செய்ய வேண்டும் என்று அது போதிக்கிறது. பலன்களில் பற்றில்லாமல் இருப்பதுதான் கடமையைச் செய்வதில் உண்மையான அமைதியையும் தெளிவையும் தருகிறது.</p>
+                    `;
+                    break;
+                case 'en':
+                default:
+                    simulatedExplanation = `
+                        <h4 class="font-semibold text-xl text-indigo-700">Explanation in English (AI Simulated)</h4>
+                        <p class="mt-2">This sloka embodies the essence of Karma Yoga. It teaches that the duty, the action itself, should be the focus, **not the reward**. By detaching from the results, one finds true peace and clarity in performing their Dharma.</p>
+                    `;
+            }
+            
+            // Display loading message first
+            output.innerHTML = `<h4 class="font-semibold text-xl text-indigo-700">Explanation in ${langName} (AI Generation Simulated)</h4>
+            <p class="mt-2">Connecting to the Divine Wisdom... Generating the personalized explanation for Chapter ${chapterNumber} in **${langName}**...</p>`;
+
+            // Simulate AI delay before showing the full content
+            setTimeout(() => {
+                output.innerHTML = simulatedExplanation;
+            }, 1000);
+        }
+        
+        // --- NEW: Dynamic Katha Data ---
+        const KATHAS = [
+            { mood: ["Lonely", "Confused"], title: "The Story of Sudama's Friendship", tale: (mood) => `When you feel **${mood}** or **confused**, remember Sudama. Though poor and hesitant, he approached me with nothing but love. True connection doesn't depend on wealth or status, but on the purity of the heart. I will always welcome you, no matter your condition. Seek refuge in selfless friendship and devotion.`, youtubeQuery: 'Krishna Sudama Friendship Story' },
+            { mood: ["Happy", "Motivated"], title: "The Story of the Rasa Leela's Bliss", tale: (mood) => `When your heart is **${mood}** and **motivated**, remember the Rasa Leela. It signifies the soul's joyous dance with the divine. Use this energy to perform your duty with zeal (Karma Yoga) and share your bliss with the world. Let your actions become an offering of love.`, youtubeQuery: 'Krishna Rasa Leela meaning' },
+            { mood: ["Anxious", "Stressed"], title: "The Story of Arjuna's Fear", tale: (mood) => `When you feel **${mood}** or **stressed**, remember Arjuna on the battlefield. He was paralyzed by fear of the outcome. My instruction was simple: 'Perform your prescribed duty, without attachment to the results.' Focus on the effort (Karma), not the reward or the stress, and all fear will dissolve.`, youtubeQuery: 'Arjuna fear Bhagavad Gita' },
+            { mood: ["Angry", "Frustrated"], title: "The Story of the Unshakeable Mountain (Govardhana)", tale: (mood) => `When you feel **${mood}** or **frustrated**, remember the tale of Govardhana Hill. Anger is a flood of uncontrolled emotion. Anger must be overcome by determination and effort. Detach from the immediate cause of the anger and lift your consciousness above the storm.`, youtubeQuery: 'Krishna Govardhan Hill story lesson' }
+        ];
+
+        window.getKathaByMood = async function() {
+            const mood = document.getElementById('katha-mood-input').value.trim();
+            const kathaOutput = document.getElementById('katha-output');
+            if (!mood) {
+                kathaOutput.innerHTML = `<p class="text-center text-red-500">Please enter your mood, Arjuna.</p>`;
+                return;
+            }
+
+            kathaOutput.innerHTML = `<p class="text-center text-indigo-600">Searching the divine archives for a tale matching your "${mood}" mood...</p>`;
+            await new Promise(resolve => setTimeout(resolve, 1500)); 
+
+            const foundKatha = KATHAS.find(k => k.mood.some(m => mood.toLowerCase().includes(m.toLowerCase()))) || {
+                 title: "The Story of the Universal Form", 
+                 tale: (m) => `My dearest soul, your feeling of **${m}** is a part of the temporary dualities of this world. Remember my Universal Form (Vishwaroopa) — all things begin and end in me. Find peace in this cosmic perspective. Whatever you feel, offer it to me with devotion (Bhakti).`,
+                 youtubeQuery: 'Krishna Universal Form explanation'
+            };
+            
+            const taleContent = foundKatha.tale(mood);
+            const youtubeSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(foundKatha.youtubeQuery || foundKatha.title)}`;
+
+            const placeholderKatha = `
+                <h3 class="text-2xl font-bold text-indigo-700 mb-3 merriweather">${foundKatha.title}</h3>
+                <p class="mb-4">${taleContent}</p>
+                <p class="text-sm italic text-right text-gray-500 mt-4">— Lord Krishna</p>
+                <div class="mt-6 border-t pt-4">
+                    <p class="font-semibold text-gray-700">Need a deeper dive? Watch on YouTube:</p>
+                    <a href="${youtubeSearchUrl}" target="_blank" class="text-blue-600 hover:text-blue-800 underline flex items-center mt-2">
+                        Watch: ${foundKatha.youtubeQuery || foundKatha.title}
+                        <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M10 15l5-3-5-3v6z"/><path d="M22 6.5s-.35-2.45-1.4-3.5C19.65 2 17 2 17 2H7s-2.65 0-3.6.95C2.35 4.05 2 6.5 2 6.5v11s.35 2.45 1.4 3.5c.95.95 3.6.95 3.6.95h10s2.65 0 3.6-.95c1.05-1.05 1.4-3.5 1.4-3.5v-11zM12 20c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
+                    </a>
+                </div>
+            `;
+            kathaOutput.innerHTML = placeholderKatha;
+        }
+
+        window.submitFeedback = function() { 
+            const rating = document.querySelector('input[name="rating"]:checked');
+            const feedbackText = document.getElementById('feedback-text').value.trim();
+
+            if (!rating) {
+                showModal("Error", "Please select a star rating.");
+                return;
+            }
+
+            const feedbackData = {
+                rating: parseInt(rating.value),
+                text: feedbackText,
+                timestamp: Date.now(),
+                userId: window.userId
+            };
+
+            console.log("Submitting Feedback:", feedbackData);
+            showModal("Thank You! 🙏", `Your ${feedbackData.rating}-star rating has been received. Your guidance will be refined.`);
+            document.getElementById('feedback-text').value = '';
+            // Safely reset stars
+            if(rating) rating.checked = false;
+        }
+
+        window.saveDiaryEntry = function() { 
+            const entryText = document.getElementById('diary-entry-text').value.trim();
+            if (!entryText) {
+                showModal("Wait", "The page of your mind must not be blank. Write your entry.");
+                return;
+            }
+            const date = new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+            const list = document.getElementById('diary-entries-list');
+            const newEntry = document.createElement('div');
+            newEntry.className = 'bg-gray-50 p-3 rounded-lg text-sm text-gray-600 opacity-80 animate-pulse';
+            newEntry.innerHTML = `**[${date}]** ${entryText.substring(0, 100)}${entryText.length > 100 ? '...' : ''}`;
+            
+            // Insert after the H3 tag (index 1)
+            if (list.children.length > 0) {
+                 list.insertBefore(newEntry, list.children[1]); 
+            } else {
+                 list.appendChild(newEntry);
+            }
+            
+            document.getElementById('diary-entry-text').value = '';
+            showModal("Diary Saved ✅", "Your reflections have been noted. The path of self-knowledge deepens.");
+        }
+
+        // --- Spiritual Practice Logic (Render function refined) ---
+        
+        const renderPractices = () => {
+            const practiceList = document.getElementById('practice-task-list');
+            const practiceStatus = document.getElementById('practice-status');
+            if (!practiceList) return;
+
+            const today = getCurrentDate();
+            practiceList.innerHTML = '';
+            
+            window.dailyPractices.forEach(p => {
+                const item = document.createElement('div');
+                item.className = 'flex justify-between items-center bg-indigo-50 p-4 rounded-lg shadow-sm';
+                item.innerHTML = `
+                    <span class="font-semibold text-indigo-700">${p.name}</span>
+                    <div class="flex items-center space-x-2">
+                        <input type="checkbox" id="practice-${p.id}" ${p.completed ? 'checked' : ''}
+                            class="form-checkbox h-5 w-5 text-indigo-600 rounded-full" 
+                            onclick="window.updatePracticeStatus('${p.id}')">
+                        <button onclick="window.removePracticeTask('${p.id}')" class="text-red-500 hover:text-red-700 p-1 rounded-full transition">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                        </button>
+                    </div>
+                `;
+                practiceList.appendChild(item);
+            });
+            
+            const completedCount = window.dailyPractices.filter(p => p.completed).length;
+            const totalCount = window.dailyPractices.length;
+
+            practiceStatus.innerHTML = `
+                <p class="font-semibold text-gray-800">Date: ${today}</p>
+                **Today's Progress:** ${completedCount}/${totalCount} Practices Completed. 
+                ${completedCount === totalCount ? 'Well done, Arjuna! You have performed your duty.' : 'Keep striving, Arjuna!'}
+            `;
+        }
+        
+        window.updatePracticeStatus = function(taskId) {
+            const index = window.dailyPractices.findIndex(p => p.id === taskId);
+            if (index !== -1) {
+                window.dailyPractices[index].completed = !window.dailyPractices[index].completed;
+                localStorage.setItem('dailyPractices', JSON.stringify(window.dailyPractices));
+                renderPractices();
+            }
+        }
+        
+        window.addPracticeTask = function() {
+            const input = document.getElementById('new-practice-input');
+            const taskName = input.value.trim();
+            if (!taskName) {
+                showModal("Task Required", "Please name your new spiritual practice.");
+                return;
+            }
+            
+            const newId = Date.now().toString();
+            window.dailyPractices.push({ id: newId, name: taskName, completed: false });
+            localStorage.setItem('dailyPractices', JSON.stringify(window.dailyPractices));
+            input.value = '';
+            renderPractices();
+            showModal("Task Added ✅", `"${taskName}" has been added to your daily practices.`);
+        }
+        
+        window.removePracticeTask = function(taskId) {
+            window.dailyPractices = window.dailyPractices.filter(p => p.id !== taskId);
+            localStorage.setItem('dailyPractices', JSON.stringify(window.dailyPractices));
+            renderPractices();
+            showModal("Task Removed", "The practice has been removed from your list.");
+        }
+        
+        // --- User Data Logic (Refined) ---
+        window.simulateGoogleLogin = function() {
+            showModal("Google Login Simulated", "Connecting with Google to personalize your experience and save history...");
+            window.currentUserData.isLoggedIn = true;
+            window.currentUserData.email = "devotee.krishna@gmail.com";
+            localStorage.setItem('currentUserData', JSON.stringify(window.currentUserData));
+            setTimeout(() => {
+                showPage('userdata'); // Re-render the page to show new status
+            }, 1000);
+        }
+
+        window.saveUserData = function() {
+            const name = document.getElementById('user-name').value;
+            const mobile = document.getElementById('user-mobile').value;
+            const address = document.getElementById('user-address').value;
+            const lang = document.getElementById('user-lang').value;
+            const interest = document.getElementById('user-interest').value;
+            
+            window.currentUserData.name = name;
+            window.currentUserData.mobile = mobile;
+            window.currentUserData.address = address;
+            window.currentUserData.lang = lang;
+            window.currentUserData.interest = interest;
+            
+            localStorage.setItem('currentUserData', JSON.stringify(window.currentUserData));
+            showModal("Settings Saved", "Your complete user profile and preferences have been updated and saved for personalized guidance.");
+        }
+        
+        // --- UPDATED: Self-Consult Logic ---
+        window.submitSelfConsult = function() {
+            const goal = document.getElementById('consult-goal').value.trim();
+            const challenge = document.getElementById('consult-challenge').value.trim();
+            
+            if (!goal || !challenge) {
+                showModal("Input Required", "Please describe both your goal and the challenge you face.");
+                return;
+            }
+            
+            showModal("Reflection Submitted", `**Goal:** ${goal} \n\n**Challenge:** ${challenge} \n\nYour reflection has been recorded. Seek the answer within, then consult the AI Chat for guidance.`);
+            
+            document.getElementById('consult-goal').value = '';
+            document.getElementById('consult-challenge').value = '';
+        }
+
+        // --- Templates with Updates ---
+        const PAGE_TEMPLATES = {
+            'home': () => { 
+                const renderGitaChapters = () => {
+                    return GITA_CHAPTERS.map(chapter => `
+                        <div class="bg-indigo-50 p-4 rounded-lg shadow-md cursor-pointer hover:bg-indigo-100 transition duration-150" 
+                            onclick="window.loadGitaChapter(${chapter.number})">
+                            <h3 class="font-bold text-lg text-indigo-700 merriweather">${chapter.number}. ${chapter.title}</h3>
+                            <p class="text-sm text-gray-600">Click to read in Sanskrit, English, and get the explanation.</p>
+                        </div>
+                    `).join('');
+                };
+                return `
+                    <div class="w-full max-w-5xl p-4 md:p-8">
+                        <div class="text-center mb-10">
+                            <h2 class="text-5xl font-extrabold text-indigo-800 merriweather mb-2">Bhagavad Gita Wisdom</h2>
+                            <p class="text-xl text-gray-600">A journey through 18 chapters of eternal guidance.</p>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            ${renderGitaChapters()}
+                        </div>
+                    </div>
+                `;
+            },
+            'chat': () => `
+                <div class="w-full max-w-4xl bg-white shadow-2xl rounded-2xl flex flex-col h-[85vh]">
+                    <div class="p-4 bg-indigo-100 border-b border-indigo-200 merriweather text-center font-bold text-lg">Guidance from Krishna ✨</div>
+                    <div id="chat-output" class="p-4 space-y-4 chat-container flex-grow">
+                        </div>
+                    <div class="p-4 border-t border-gray-200 flex space-x-3 items-center">
+                        <input type="text" id="user-input" placeholder="Speak your heart, Arjuna..." 
+                            class="flex-grow p-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-150"
+                            onkeypress="if(event.key === 'Enter') { window.sendMessage(); return false; }"
+                        >
+                        <button id="mic-button" onclick="window.startVoiceInput()" class="voice-btn p-3 rounded-full text-white shadow-md">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3.53-2.61 6.44-6 6.93V21h-2v-3.07c-3.39-.49-6-3.4-6-6.93H3c0 4.19 3.4 7.6 7.5 7.93v3.07h3v-3.07c4.1-.33 7.5-3.74 7.5-7.93h-2z"/></svg>
+                        </button>
+                        <button id="send-button" onclick="window.sendMessage()" class="bg-indigo-600 hover:bg-indigo-700 text-white p-3 rounded-full shadow-md transition duration-150">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        </button>
+                    </div>
+                </div>
+            `,
+            'katha': () => `
+                <div class="w-full max-w-4xl bg-white shadow-2xl rounded-2xl p-6 md:p-8 flex flex-col h-full overflow-y-auto">
+                    <h2 class="text-3xl font-bold mb-4 text-indigo-800 merriweather">Krishna Katha by Mood 📖</h2>
+                    <p class="mb-4 text-gray-600">Tell me, my child, what is the disposition of your heart today?</p>
+                    
+                    <div class="flex space-x-3 mb-6">
+                        <input type="text" id="katha-mood-input" placeholder="e.g., Happy, Lonely, Confused, Motivated..." 
+                            class="flex-grow p-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-150"
+                        >
+                        <button onclick="window.getKathaByMood()" class="bg-indigo-600 hover:bg-indigo-700 text-white p-3 rounded-full shadow-md transition duration-150">
+                            Search Tale
+                        </button>
+                    </div>
+
+                    <div id="katha-output" class="bg-indigo-50 p-4 rounded-xl shadow-inner text-gray-700 flex-grow overflow-y-auto">
+                        <p class="text-center italic text-gray-500">The divine tale will appear here, tailored to your mood.</p>
+                    </div>
+                </div>
+            `,
+            'diary': () => `
+                <div class="w-full max-w-3xl bg-white shadow-2xl rounded-2xl p-6 md:p-8 flex flex-col h-full overflow-y-auto">
+                    <h2 class="text-3xl font-bold mb-6 text-indigo-800 merriweather">Personal Diary 📝</h2>
+                    <p class="text-gray-600 mb-4">Record your thoughts, reflections, and spiritual progress here. This is a private space for your journey.</p>
+                    
+                    <textarea id="diary-entry-text" rows="8" placeholder="What are your thoughts and lessons for today?..." class="w-full p-3 border border-gray-300 rounded-lg mb-4 focus:ring-indigo-500"></textarea>
+                    
+                    <button onclick="window.saveDiaryEntry()" class="bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 transition duration-150 font-semibold shadow-md">Save Entry</button>
+
+                    <div id="diary-entries-list" class="mt-8 space-y-4">
+                        <h3 class="text-xl font-semibold text-gray-700 border-b pb-2">Recent Entries</h3>
+                        <div class="bg-gray-50 p-3 rounded-lg text-sm text-gray-600">
+                            **[10th Nov, 2025]** Reflecting on Karma Yoga. Felt less anxious about the outcome of my work today.
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded-lg text-sm text-gray-600">
+                            **[8th Nov, 2025]** Struggled with anger today. Krishna's guidance helped me find peace.
+                        </div>
+                    </div>
+                </div>
+            `,
+            'practices': () => {
+                // IMPORTANT: Ensure loadOrResetPractices runs before rendering
+                loadOrResetPractices(); 
+                // Then, the template will call renderPractices on load
+                return `
+                    <div class="w-full max-w-3xl bg-white shadow-2xl rounded-2xl p-6 md:p-8 flex flex-col h-full overflow-y-auto">
+                        <h2 class="text-3xl font-bold mb-6 text-indigo-800 merriweather">Spiritual Practices Tracker ✅</h2>
+                        <p class="text-gray-600 mb-2">Progress resets daily based on your device time (${getCurrentDate()}).</p>
+                        <div id="practice-status" class="mb-6 p-4 bg-yellow-100 rounded-lg text-yellow-800">
+                            </div>
+                        
+                        <h3 class="text-xl font-semibold text-gray-700 mb-3">Daily Tasks</h3>
+                        <div id="practice-task-list" class="space-y-4 mb-8">
+                            </div>
+                        
+                        <div class="border-t pt-4">
+                            <h3 class="text-xl font-semibold text-gray-700 mb-3">Add New Practice</h3>
+                            <div class="flex space-x-2">
+                                <input type="text" id="new-practice-input" placeholder="e.g., Chant 1 mala, Serve a friend" 
+                                    class="flex-grow p-3 border border-gray-300 rounded-lg focus:ring-indigo-500">
+                                <button onclick="window.addPracticeTask()" class="bg-indigo-600 text-white px-4 py-3 rounded-lg hover:bg-indigo-700 transition font-semibold">Add</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            },
+            'userdata': () => `
+                <div class="w-full max-w-3xl bg-white shadow-2xl rounded-2xl p-6 md:p-8 flex flex-col h-full overflow-y-auto">
+                    <h2 class="text-3xl font-bold mb-6 text-indigo-800 merriweather">User Profile & Data 👤</h2>
+                    <p class="text-gray-600 mb-6">Your identity in the digital realm. Data used only for personalized guidance.</p>
+                    
+                    <button onclick="window.simulateGoogleLogin()" class="bg-red-500 text-white px-4 py-3 rounded-lg hover:bg-red-600 transition duration-150 font-semibold shadow-md mb-6 flex items-center justify-center space-x-2">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 48 48"><path d="M44 24c0-2.58-0.2-4.99-0.56-7.29H24v6.86h11.75c-0.5 2.82-2.18 5.25-4.48 6.9V33h5.71C41.87 30.2 44 27.2 44 24z" fill="#4285F4"/><path d="M24 44c5.29 0 9.77-1.76 13.03-4.78l-5.71-4.43c-1.57 1.05-3.6 1.67-6.22 1.67-4.79 0-8.87-3.23-10.36-7.59H8.7V33C12.33 39.46 17.61 44 24 44z" fill="#34A853"/><path d="M13.64 26.22c-0.3-0.89-0.45-1.84-0.45-2.82s0.15-1.93 0.45-2.82V16.5H7.93C7.29 18.84 7 21.36 7 24s0.29 5.16 0.93 7.5l5.71-4.43z" fill="#FBBC05"/><path d="M24 13.5c2.89 0 5.48 1 7.55 3.05l5-5C33.77 5.76 29.29 4 24 4c-6.39 0-11.67 4.54-15.28 11.5l5.71 4.43c1.49-4.36 5.57-7.59 10.36-7.59z" fill="#EA4335"/></svg>
+                        ${window.currentUserData.isLoggedIn ? `Logged in as: ${window.currentUserData.email}` : 'Login with Google (Save History)'}
+                    </button>
+                    
+                    <div class="space-y-4">
+                        <div class="p-4 bg-gray-50 rounded-lg shadow-sm">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                            <input type="text" id="user-name" value="${window.currentUserData.name || ''}" placeholder="Arjuna's Companion Name" class="w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500">
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded-lg shadow-sm">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Mobile Number</label>
+                            <input type="tel" id="user-mobile" value="${window.currentUserData.mobile || ''}" placeholder="Enter for communication" class="w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500">
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded-lg shadow-sm">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Address/City</label>
+                            <input type="text" id="user-address" value="${window.currentUserData.address || ''}" placeholder="For regional connectivity" class="w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500">
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded-lg shadow-sm">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Interest in Spirituality (1-10)</label>
+                            <input type="number" id="user-interest" value="${window.currentUserData.interest || 5}" min="1" max="10" class="w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500">
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded-lg shadow-sm">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Preferred Language for Explanations</label>
+                            <select id="user-lang" class="w-full p-2 border border-gray-300 rounded-md">
+                                <option value="en" ${window.currentUserData.lang === 'en' ? 'selected' : ''}>English</option>
+                                <option value="hi" ${window.currentUserData.lang === 'hi' ? 'selected' : ''}>Hindi</option>
+                                <option value="gu" ${window.currentUserData.lang === 'gu' ? 'selected' : ''}>Gujarati</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button onclick="window.saveUserData()" class="mt-6 bg-indigo-600 text-white px-4 py-3 rounded-lg hover:bg-indigo-700 transition duration-150 font-semibold shadow-md">Save Full Profile</button>
+                    <p class="text-sm text-center text-red-500 mt-4">Note: Your search and history data is saved locally until you successfully log in (mocked).</p>
+                </div>
+            `,
+            'about': () => `
+                <div class="w-full max-w-3xl bg-white shadow-2xl rounded-2xl p-6 md:p-8 flex flex-col h-full overflow-y-auto">
+                    <h2 class="text-3xl font-bold mb-6 text-indigo-800 merriweather">About KrishnTalks: Modern Guidance. Eternal Wisdom.</h2>
+                    
+                    <div class="prose max-w-none text-gray-700 mb-8 space-y-4">
+                        <p class="text-lg font-bold text-green-700">A Practical Solution, Not a Prediction App 🧠</p>
+                        <p>KrishnTalks is built on the belief that the Bhagavad Gita offers the most practical, actionable solutions for life's problems, especially for teenagers and adults dealing with anxiety, career confusion, relationships, and the search for purpose.</p>
+                        <p>We are NOT an astrology or prediction app. We provide direct guidance on duty (Karma Yoga), mind control (Dhyana Yoga), and detachment (Jnana Yoga) to help you make rational, peaceful decisions in life.</p>
+                        <h3 class="text-xl font-bold text-indigo-700 pt-4">About the Creator (Me)</h3>
+                        <p>This application was conceptualized and built by Niharika Vyas as a passion project to merge technology with spirituality. My goal is to use the power of tools like Firebase and Google's AI to create a genuinely helpful and uplifting experience for seekers on the spiritual path.</p>
+                    </div>
+                    
+                    <h3 class="text-2xl font-semibold mb-4 text-indigo-700 border-t pt-4">Rate Our Guidance</h3>
+                    <div class="star-rating flex justify-center space-x-2 mb-8" dir="rtl">
+                        <input type="radio" id="star5" name="rating" value="5" /><label for="star5" title="5 stars (Excellent)">★</label>
+                        <input type="radio" id="star4" name="rating" value="4" /><label for="star4" title="4 stars (Good)">★</label>
+                        <input type="radio" id="star3" name="rating" value="3" /><label for="star3" title="3 stars (Average)">★</label>
+                        <input type="radio" id="star2" name="rating" value="2" /><label for="star2" title="2 stars (Poor)">★</label>
+                        <input type="radio" id="star1" name="rating" value="1" /><label for="star1" title="1 star (Terrible)">★</label>
+                    </div>
+
+                    <textarea id="feedback-text" rows="4" placeholder="Share your detailed thoughts..." class="w-full p-3 border border-gray-300 rounded-lg mb-4 focus:ring-indigo-500"></textarea>
+
+                    <button onclick="window.submitFeedback()" class="bg-indigo-600 text-white px-4 py-3 rounded-lg hover:bg-indigo-700 transition duration-150 font-semibold shadow-md">Submit Feedback</button>
+
+                </div>
+            `,
+            'consult': () => `
+                <div class="w-full max-w-3xl bg-white shadow-2xl rounded-2xl p-6 md:p-8 flex flex-col h-full overflow-y-auto">
+                    <h2 class="text-3xl font-bold mb-6 text-indigo-800 merriweather">Self-Consultation & Reflection 🧘</h2>
+                    <div class="text-gray-700 space-y-4">
+                        <p class="text-lg font-semibold border-b pb-2 text-indigo-600">Before seeking external advice, consult the voice of your inner conscience (Buddhi Yoga).</p>
+                        <p>Use this tool to clarify your **current duty** (Dharma) and the **challenge** obstructing your path. This helps frame your question before asking the AI Guru.</p>
+                    </div>
+                    <div class="mt-8 p-6 bg-indigo-50 rounded-lg shadow-inner">
+                        <h3 class="text-xl font-semibold text-indigo-700 mb-4">Step 1: Define Your Goal/Dharma</h3>
+                        <textarea id="consult-goal" rows="2" placeholder="Example: My goal is to complete my education with a peaceful mind." 
+                            class="w-full p-3 border border-gray-300 rounded-lg mb-4 focus:ring-indigo-500"></textarea>
+                            
+                        <h3 class="text-xl font-semibold text-indigo-700 mb-4 border-t pt-4">Step 2: Define Your Challenge/Obstacle</h3>
+                        <textarea id="consult-challenge" rows="3" placeholder="Example: The challenge is anxiety about future results (Phal), which distracts me now." 
+                            class="w-full p-3 border border-gray-300 rounded-lg mb-4 focus:ring-indigo-500"></textarea>
+
+                        <button onclick="window.submitSelfConsult()" class="bg-purple-600 text-white px-4 py-3 rounded-lg hover:bg-purple-700 transition duration-150 font-semibold shadow-md w-full">
+                            Record Reflection
+                        </button>
+                    </div>
+                    
+                    <div class="mt-6 text-center text-sm text-gray-500">
+                        <p>Once recorded, you can ask the AI: "Based on my defined goal and challenge, how should I proceed according to Karma Yoga?"</p>
+                    </div>
+                </div>
+            `,
+        };
+
+        window.showPage = function(pageId) {
+            const mainContent = document.getElementById('app-content');
+            const template = PAGE_TEMPLATES[pageId];
+            if (template) {
+                mainContent.innerHTML = template();
+                
+                // Toggle padding
+                mainContent.classList.remove('p-0', 'md:p-0');
+                mainContent.classList.add('p-4', 'md:p-8');
+                
+                if (pageId === 'chat') {
+                    renderChatMessages(window.chatHistory);
+                } else if (pageId === 'practices') {
+                    renderPractices(); // Ensure practices render after template is inserted
+                }
+            } else {
+                mainContent.innerHTML = `<h2 class="text-3xl text-red-500">Page Not Found</h2>`;
+            }
+        }
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initFirebase();
+        });
+        
+    </script>
+</body>
+</html>
